@@ -1,3 +1,1 @@
-# dik-rave-promo
-
-testing
+ # Heat Rave
