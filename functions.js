@@ -5,68 +5,91 @@ let poses = [];
 let hands = [];
 let slider =[0, 0, 0, 0];
 let values = []; 
-
+let rockWasActive = false;
+let rockState = {};
+let peaceWasActive = false;
+let peaceState = {};
+let previousBodyZone = -1;  
 function poseDetection(){
   // Start the pose detection for body and hands
   bodyPose.detectStart(video, gotPoses);
   handPose.detectStart(video, gotHands);
 }
 
-function drawKeypoints(trackedKeypoints){
-  // Draw the keypoints for each tracked hand or body pose
+function drawKeypoint(trackedKeypoints){
+  // Draw the keypoints for each tracked hand and body pose
  for (let i = 0; i < trackedKeypoints.length; i++) {
     let trackedKeypoint = trackedKeypoints[i];
+    
     for (let j = 0; j < trackedKeypoint.keypoints.length; j++) {
       let keypoint = trackedKeypoint.keypoints[j];
-      
       fill(0, 255, 0);
       noStroke();
       circle(width - keypoint.x, keypoint.y, 10); 
     }
   }
 }
+function isRockSign(hand) {
+  let indexExtended = getKeypoint(hand, 'index_finger_tip').y < getKeypoint(hand, 'index_finger_mcp').y;
+  let middleFolded = getKeypoint(hand, 'middle_finger_tip').y > getKeypoint(hand, 'middle_finger_mcp').y;
+  let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
+  let pinkyExtended = getKeypoint(hand, 'pinky_finger_tip').y < getKeypoint(hand, 'pinky_finger_mcp').y;
+
+  let sign = indexExtended && middleFolded && ringFolded && pinkyExtended;
+  let key = hand.handedness;
+  let activateRock = sign && !rockState[key];
+  rockState[key] = sign;
+  return activateRock;
+}
+
+function isPeaceSign(hand) {
+  let indexExtended = getKeypoint(hand, 'index_finger_tip').y < getKeypoint(hand, 'index_finger_mcp').y;
+  let middleExtended = getKeypoint(hand, 'middle_finger_tip').y < getKeypoint(hand, 'middle_finger_mcp').y;
+  let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
+  let pinkyFolded = getKeypoint(hand, 'pinky_finger_tip').y > getKeypoint(hand, 'pinky_finger_mcp').y;
+
+  let sign = indexExtended && middleExtended && ringFolded && pinkyFolded;
+  let key = hand.handedness;
+  let activatePeace = sign && !peaceState[key];
+  peaceState[key] = sign;
+  return activatePeace;
+}
 
 function isPointing(hand) {
-  // Check if the index finger is extended and the other fingers are folded
-  let indexExtended = hand.keypoints[8].y < hand.keypoints[5].y;
-  let middleFolded = hand.keypoints[12].y > hand.keypoints[9].y;
-  let ringFolded = hand.keypoints[16].y > hand.keypoints[13].y;
-  let pinkyFolded = hand.keypoints[20].y > hand.keypoints[17].y;
+  // return true if hand is pointing
+  // compares the y value of fingertips the base of the finger  
+  let indexExtended = getKeypoint(hand, 'index_finger_tip').y < getKeypoint(hand, 'index_finger_mcp').y;
+  let middleFolded = getKeypoint(hand, 'middle_finger_tip').y > getKeypoint(hand, 'middle_finger_mcp').y;
+  let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
+  let pinkyFolded = getKeypoint(hand, 'pinky_finger_tip').y > getKeypoint(hand, 'pinky_finger_mcp').y;
 
   return indexExtended && middleFolded && ringFolded && pinkyFolded;
 }
 
-function updateSlider(){
-  // Update the slider values based on the position of the index finger of each hand
-  for (let hand of hands) {
-    let indexFinger = hand.keypoints[8];
+function updateSlider(hand, pose, zone){
+  let indexFinger = getKeypoint(hand, 'index_finger_tip');
+  let eyes = (getKeypoint(pose, 'left_eye').y + getKeypoint(pose, 'right_eye').y)/2;
+  let shoulders = (getKeypoint(pose, 'left_shoulder').y + getKeypoint(pose, 'right_shoulder').y)/2;
+  // check if the keypoints are detected and if the index finger is between the eyes and shoulders 
+  // and update the slider value accordingly
 
-    if (poses.length > 0) {
-      let pose = poses[0];
-      let points = [pose.keypoints[1], pose.keypoints[2], pose.keypoints[5], pose.keypoints[6]];
-
-      // check if the hand and body is in the same zone
-      let bodyCenter = (pose.keypoints[5].x + pose.keypoints[6].x) / 2;
-      let handZone = Math.floor(indexFinger.x / (width / 4));
-      let bodyZone = Math.floor(bodyCenter / (width / 4));
-      if (handZone !== bodyZone) {
-        continue;
-      }
-      
-      // check if the keypoints are detected and if the index finger is between the eyes and shoulders 
-      // and update the slider value accordingly
-      if (points.every(point => point.confidence > 0.1)) {
-        let eyes = (pose.keypoints[1].y + pose.keypoints[2].y) / 2;
-        let shoulders = (pose.keypoints[5].y + pose.keypoints[6].y) / 2;
-
-        if(indexFinger.y > eyes && indexFinger.y < shoulders){ 
-          slider[handZone] = Math.round(((indexFinger.y - shoulders) / (eyes - shoulders)) * 100); 
-          console.log("0: "+ slider[0] + "%   1: "+ slider[1] + "%   2: "+ slider[2] + "%    3: "+ slider[3] + "%");
-        }
-      }
-    }
+  if(indexFinger.y > eyes && indexFinger.y < shoulders){ 
+    slider[zone] = Math.round(((indexFinger.y - shoulders) / (eyes - shoulders)) * 100); 
+    console.log("0: "+ slider[0] + "%   1: "+ slider[1] + "%   2: "+ slider[2] + "%    3: "+ slider[3] + "%");
   }
+  soundToggle(zone, slider[zone]); 
 }
+
+
+function soundToggle(index, value) {
+  soundEffects[index].volume = value/100;
+}
+function getKeypoint(pose, name) {
+  return pose.keypoints.find(k => k.name === name);
+}
+
+function gotPoses(results) {poses = results;}
+function gotHands(results) {hands = results;}
 
 function drawContours(){
   // Draw the contours based on the video feed and the slider values
@@ -78,13 +101,12 @@ function drawContours(){
     const p = i * 4;
     const b = (lowRes.pixels[p] + lowRes.pixels[p + 1] + lowRes.pixels[p + 2]) / 3;
     const v = constrain((b - 40) / 180, 0, 1);
-    values[i] = lerp(values[i] ?? v, v, 0.4);
+    values[i] = v;
+    // values[i] = lerp(values[i] ?? v, v, 0.05);
   }
   
   // Generate the contours 
-  const silhouettes = d3.contours()
-    .size([cols, rows])
-    .thresholds(brightness)(values);
+  const silhouettes = d3.contours().size([cols, rows]).thresholds(brightness)(values);
 
   drawingContext.save();
   drawingContext.translate(width, 0);
@@ -99,14 +121,3 @@ function drawContours(){
   });
   drawingContext.restore();
 }
-
-function gotPoses(results) {
-  // Callback for body pose detection results
-  poses = results;
-}
-
-function gotHands(results) {
-  // Callback for hand pose detection results
-  hands = results;
-}
-
