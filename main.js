@@ -16,8 +16,8 @@ let path;
 let options = {maxHands: 8, flipped: false, runtime: "mediapipe", modelType: "full"}; //a maximum of 8 hands can be detected, one for each person in the frame. 
 let lastZone = -1;
 let zoneOn = [false, false, false, false]; // utanför draw(), minns varje zons status
-let ws = new WebSocket("ws://10.0.0.100:8080");
-let L= (n,v) => ws.readyState == 1&&ws.send(JSON.stringify({type: "take", lights: [n], values: v}));
+// let ws = new WebSocket("ws://10.0.0.100:8080");
+// let L= (n,v) => ws.readyState == 1&&ws.send(JSON.stringify({type: "take", lights: [n], values: v}));
 
 
 function preload() { 
