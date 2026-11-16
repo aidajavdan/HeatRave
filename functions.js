@@ -5,11 +5,6 @@ let poses = [];
 let hands = [];
 let slider =[0, 0, 0, 0];
 let values = []; 
-let rockWasActive = false;
-let rockState = {};
-let peaceWasActive = false;
-let peaceState = {};
-let previousBodyZone = -1;  
 
 function poseDetection(){
   // Start the pose detection for body and hands
@@ -36,19 +31,6 @@ function isRockSign(hand) {
   let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
   let pinkyExtended = getKeypoint(hand, 'pinky_finger_tip').y < getKeypoint(hand, 'pinky_finger_mcp').y;
  return indexExtended && middleFolded && ringFolded && pinkyExtended;
-}
-
-function isPeaceSign(hand) {
-  let indexExtended = getKeypoint(hand, 'index_finger_tip').y < getKeypoint(hand, 'index_finger_mcp').y;
-  let middleExtended = getKeypoint(hand, 'middle_finger_tip').y < getKeypoint(hand, 'middle_finger_mcp').y;
-  let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
-  let pinkyFolded = getKeypoint(hand, 'pinky_finger_tip').y > getKeypoint(hand, 'pinky_finger_mcp').y;
-
-  let sign = indexExtended && middleExtended && ringFolded && pinkyFolded;
-  let key = hand.handedness;
-  let activatePeace = sign && !peaceState[key];
-  peaceState[key] = sign;
-  return activatePeace;
 }
 
 function isPointing(hand) {
@@ -98,7 +80,6 @@ function drawContours(){
     const b = (lowRes.pixels[p] + lowRes.pixels[p + 1] + lowRes.pixels[p + 2]) / 3;
     const v = constrain((b - 40) / 180, 0, 1);
     values[i] = v;
-    // values[i] = lerp(values[i] ?? v, v, 0.05);
   }
   
   // Generate the contours 

@@ -1,21 +1,19 @@
 const WIDTH = 1300;
 const HEIGHT = 800;
-const cols = 64;  
-const bgMusic = new Audio('music/gbMusic.mp3');
-const beat1 = new Audio('newMusic/rave5.mp3');
-const beat2 = new Audio('newMusic/rave0.mp3');
-const beat3 = new Audio('newMusic/rave3.mp3');
-const beat4 = new Audio('newMusic/rave4.mp3');
-
 const COLORS = [255, 234, 41, 14];
+const cols = 64;  
+
+const beat1 = new Audio('music/rave0.mp3');
+const beat2 = new Audio('music/rave1.mp3');
+const beat3 = new Audio('music/rave2.mp3');
+const beat4 = new Audio('music/rave3.mp3');
+
 let soundEffects = [beat1, beat2, beat3, beat4]; //array of sound effects for each zone
 let rows;
 let video;
 let lowRes;        
 let path;
-let angle = 0;
 let options = {maxHands: 8, flipped: false, runtime: "mediapipe", modelType: "full"}; //a maximum of 8 hands can be detected, one for each person in the frame. 
-let lastZone = -1;
 let zoneOn = [false, false, false, false]; // utanför draw(), minns varje zons status
 let ws = new WebSocket("ws://10.0.0.100:8080");
 let L = (n, v) => ws.readyState == 1 && ws.send(JSON.stringify({type: "take", lights: [n], values: v}));
@@ -88,7 +86,6 @@ function draw() {
 
       //change handsigns to sound effects
       if (isRockSign(hand)) {
-
         const index = Math.floor(Date.now() / 150) % colors.length; 
         L('Profile 21', { 
           dimmer: 255, 
@@ -103,11 +100,6 @@ function draw() {
           gobo: 0, 
         });
       }
-
-      if(isPeaceSign(hand)){
-
-      }
-
       if (isPointing(hand) && handZone == bodyZone) {
         updateSlider(hand, pose, handZone);
       }
