@@ -10,6 +10,7 @@ let rockState = {};
 let peaceWasActive = false;
 let peaceState = {};
 let previousBodyZone = -1;  
+
 function poseDetection(){
   // Start the pose detection for body and hands
   bodyPose.detectStart(video, gotPoses);
@@ -34,12 +35,7 @@ function isRockSign(hand) {
   let middleFolded = getKeypoint(hand, 'middle_finger_tip').y > getKeypoint(hand, 'middle_finger_mcp').y;
   let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
   let pinkyExtended = getKeypoint(hand, 'pinky_finger_tip').y < getKeypoint(hand, 'pinky_finger_mcp').y;
-
-  let sign = indexExtended && middleFolded && ringFolded && pinkyExtended;
-  let key = hand.handedness;
-  let activateRock = sign && !rockState[key];
-  rockState[key] = sign;
-  return activateRock;
+ return indexExtended && middleFolded && ringFolded && pinkyExtended;
 }
 
 function isPeaceSign(hand) {

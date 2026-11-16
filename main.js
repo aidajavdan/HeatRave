@@ -6,19 +6,19 @@ const beat1 = new Audio('newMusic/rave5.mp3');
 const beat2 = new Audio('newMusic/rave0.mp3');
 const beat3 = new Audio('newMusic/rave3.mp3');
 const beat4 = new Audio('newMusic/rave4.mp3');
-const snare = new Audio('newMusic/snare.mp3');
 
+const COLORS = [255, 234, 41, 14];
 let soundEffects = [beat1, beat2, beat3, beat4]; //array of sound effects for each zone
 let rows;
 let video;
 let lowRes;        
 let path;
+let angle = 0;
 let options = {maxHands: 8, flipped: false, runtime: "mediapipe", modelType: "full"}; //a maximum of 8 hands can be detected, one for each person in the frame. 
 let lastZone = -1;
 let zoneOn = [false, false, false, false]; // utanför draw(), minns varje zons status
-// let ws = new WebSocket("ws://10.0.0.100:8080");
-// let L= (n,v) => ws.readyState == 1&&ws.send(JSON.stringify({type: "take", lights: [n], values: v}));
-
+let ws = new WebSocket("ws://10.0.0.100:8080");
+let L = (n, v) => ws.readyState == 1 && ws.send(JSON.stringify({type: "take", lights: [n], values: v}));
 
 function preload() { 
   // Load the bodyPose and handPose models
@@ -57,16 +57,18 @@ function setup() {
 function draw() {
   // Set the background color and draw the contours for the video feed
   background('#3627a3'); 
-  drawContours(); 
+    drawContours(); 
 
-  // L('Wash 21',{
-  //   pan: 0,
-  //   tilt: 0,
-  //   dimmer: 255,  
-  // });
+    L('Profile 21', { 
+        pan: 0.6545,
+        tilt: 0.4445, 
+        dimmer: 255, 
+        sat: 1,
+        hue: COLORS[1],
+        });
 
   // Divide the canvas into 4 zones
-  stroke(255);
+  stroke('#ffd21f');
   strokeWeight(2);
   line(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
   line(WIDTH / 4, 0, WIDTH / 4, HEIGHT);
@@ -86,12 +88,24 @@ function draw() {
 
       //change handsigns to sound effects
       if (isRockSign(hand)) {
-        snare.volume = 0.2;
-        snare.play();
+
+        const index = Math.floor(Date.now() / 150) % colors.length; 
+        L('Profile 21', { 
+          dimmer: 255, 
+          hue: COLORS[index], 
+          sat: 1,
+          focus: 77,
+          gobo: 4, 
+        });
+      } else {
+         L('Profile 21', { 
+          hue: COLORS[1],
+          gobo: 0, 
+        });
       }
+
       if(isPeaceSign(hand)){
-        snare.volume = 0.2;
-        snare.play();
+
       }
 
       if (isPointing(hand) && handZone == bodyZone) {
