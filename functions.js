@@ -25,13 +25,6 @@ function drawKeypoint(trackedKeypoints){
     }
   }
 }
-function isRockSign(hand) {
-  let indexExtended = getKeypoint(hand, 'index_finger_tip').y < getKeypoint(hand, 'index_finger_mcp').y;
-  let middleFolded = getKeypoint(hand, 'middle_finger_tip').y > getKeypoint(hand, 'middle_finger_mcp').y;
-  let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
-  let pinkyExtended = getKeypoint(hand, 'pinky_finger_tip').y < getKeypoint(hand, 'pinky_finger_mcp').y;
- return indexExtended && middleFolded && ringFolded && pinkyExtended;
-}
 
 function isPointing(hand) {
   // return true if hand is pointing
@@ -40,8 +33,15 @@ function isPointing(hand) {
   let middleFolded = getKeypoint(hand, 'middle_finger_tip').y > getKeypoint(hand, 'middle_finger_mcp').y;
   let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
   let pinkyFolded = getKeypoint(hand, 'pinky_finger_tip').y > getKeypoint(hand, 'pinky_finger_mcp').y;
-
   return indexExtended && middleFolded && ringFolded && pinkyFolded;
+}
+
+function isRockSign(hand) {
+  let indexExtended = getKeypoint(hand, 'index_finger_tip').y < getKeypoint(hand, 'index_finger_mcp').y;
+  let middleFolded = getKeypoint(hand, 'middle_finger_tip').y > getKeypoint(hand, 'middle_finger_mcp').y;
+  let ringFolded = getKeypoint(hand, 'ring_finger_tip').y > getKeypoint(hand, 'ring_finger_mcp').y;
+  let pinkyExtended = getKeypoint(hand, 'pinky_finger_tip').y < getKeypoint(hand, 'pinky_finger_mcp').y;
+ return indexExtended && middleFolded && ringFolded && pinkyExtended;
 }
 
 function updateSlider(hand, pose, zone){
@@ -69,12 +69,14 @@ function getKeypoint(pose, name) {
 function gotPoses(results) {poses = results;}
 function gotHands(results) {hands = results;}
 
+// The filters code starts here
 function drawContours(){
-  // Draw the contours based on the video feed and the slider values
+  // Draws the contours based on the video feed and makes it less detailed 
   lowRes.image(video, 0, 0, cols, rows); 
   lowRes.loadPixels();
   if (lowRes.pixels.length === 0) return;
 
+  // Calculate brightness value for every point, b is the brightness
   for (let i = 0; i < cols * rows; i++) {
     const p = i * 4;
     const b = (lowRes.pixels[p] + lowRes.pixels[p + 1] + lowRes.pixels[p + 2]) / 3;
@@ -82,14 +84,15 @@ function drawContours(){
     values[i] = v;
   }
   
-  // Generate the contours 
+  // Lets d3 generate a smooth outline for each layer
   const silhouettes = d3.contours().size([cols, rows]).thresholds(brightness)(values);
 
+  // Saves the settings, mirrorreverse the image and moves the image back in the right place after the mirrorreversing
   drawingContext.save();
   drawingContext.translate(width, 0);
   drawingContext.scale(-width / cols, height / rows);
   
-  // Draw each silhouette with the corresponding color
+  // Draw each silhouette with the corresponding color for brightness and restores the canvas for the next frame
   silhouettes.forEach((silhouette, i) => {
     drawingContext.fillStyle = colors[i];
     drawingContext.beginPath();
