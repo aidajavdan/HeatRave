@@ -51,13 +51,23 @@ function setup() {
   }
 
   // Start the pose detection
-  poseDetection();                          
+  poseDetection();  
+    L('Wash 35', { 
+      dimmer: 200,
+      tilt: 0.3745, 
+
+    });                      
 }
 
 function draw() {
   // Set the background color and draw the contours for the video feed
   background('#3627a3'); 
   drawContours(); 
+
+  fill('yellow');
+  textAlign(CENTER, TOP);
+  textSize(50);
+  text('Move around to start the rave!', width / 2, 10);  
 
   L('Profile 21', { 
       pan: 0.6545,
@@ -68,15 +78,15 @@ function draw() {
     });
 
   // Divide the canvas into 4 zones
-  stroke('#ffd21f');
-  strokeWeight(2);
-  line(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-  line(WIDTH / 4, 0, WIDTH / 4, HEIGHT);
-  line(3 * WIDTH / 4, 0, 3 * WIDTH / 4, HEIGHT);
+  // stroke('#ffd21f');
+  // strokeWeight(2);
+  // line(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
+  // line(WIDTH / 4, 0, WIDTH / 4, HEIGHT);
+  // line(3 * WIDTH / 4, 0, 3 * WIDTH / 4, HEIGHT);
 
   // Draw the keypoints for the detected hands and body poses
-  drawKeypoint(poses);
-  drawKeypoint(hands);
+  // drawKeypoint(poses);
+  // drawKeypoint(hands);
 
   // Look for all poses and hands on screen 
   for (let pose of poses) {
