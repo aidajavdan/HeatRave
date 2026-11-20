@@ -1,4 +1,4 @@
-const colors = ['#5a2dff', '#8a22d0', '#d0208a', '#ff2a50', '#ff8c1a', '#ffd21f']; //flytta till andra filen
+const colors = ['#5a2dff', '#8a22d0', '#d0208a', '#ff2a50', '#ff8c1a', '#ffd21f'];
 const brightness = [0.2, 0.35, 0.5, 0.65, 0.8, 0.9];
 
 let poses = [];
